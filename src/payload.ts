@@ -22,6 +22,11 @@ let ws: WebSocket = new WebSocket(ws_server);
 
 ws.onopen = (e: Event) => {
   debug("Connection established ready. client trace id ", client_trace_id);
+  ws.send(JSON.stringify({
+    "status": "init",
+    "client_trace_id": client_trace_id,
+    "current_url": window.location.href,
+  }));
 };
 
 interface Command {
