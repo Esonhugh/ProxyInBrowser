@@ -1,9 +1,9 @@
-# JSPayloading
+# ProxyInBrowser
 
-Here is JSPayloading Project, a project that aims to provide a simple and easy way to exploit
-XSS with websocket and javascript.
+Here is Proxy in browser Project, a project that aims to provide a simple way in impersonate any web request with fetch API
+and create a simple http proxy service at local.
 
-It creates a websocket server that listens to incoming connections and sends a payload to the client
+You can make request via http proxy and that request will send to the browser which executed payloads and let the browser request on behalf of you.
 
 ## Installation
 
