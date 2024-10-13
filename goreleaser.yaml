@@ -1,0 +1,45 @@
+project_name: proxyinbrowser
+version: 2
+before:
+  hooks:
+    - echo "Startup Building!"
+    - make pack-js # packing payloads
+    - cp build/bundle.js ./cmd/server/sessionmanager/bundle.js # copy to embed location
+    - go mod tidy # build prepare
+    - go test -v ./... # regenerate certs
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - windows
+      - linux
+    goarch:
+      - "386"
+      - amd64
+      - arm64
+
+archives:
+  - name_template: "{{ .ProjectName }}_{{ .Tag }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - README.md
+      - cert/*
+      - src: build/bundle.js
+        dst: bundle.js
+        strip_parent: true
+
+    format_overrides:
+      - goos: windows
+        format: zip
+
+checksum:
+  name_template: "checksums.txt"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^doc:"
+      - "^ci:"
+      - "^Merge pull request"
