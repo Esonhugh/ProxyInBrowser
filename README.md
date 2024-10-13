@@ -37,3 +37,7 @@ Console> help
 ## Usage Demo
 
 [![ProxyInBrowser Usage Demo](https://markdown-videos-api.jorgenkh.no/url?url=https%3A%2F%2Fyoutu.be%2FoJyczopfzrc)](https://youtu.be/oJyczopfzrc)
+
+## Sponsor
+
+[Patreon](https://patreon.com/Skyworshiper?utm_medium=unknown&utm_source=join_link&utm_campaign=creatorshare_creator&utm_content=copyLink)
