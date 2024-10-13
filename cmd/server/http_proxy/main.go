@@ -3,8 +3,6 @@ package http_proxy
 import (
 	"context"
 	"errors"
-	"io"
-	"net"
 	"net/http"
 	"net/http/httputil"
 	"os"
@@ -21,53 +19,6 @@ func logRequest(next http.HandlerFunc) http.HandlerFunc {
 		log.Debugf("url=%s\n\n%s\n", r.URL, requestDump)
 		next.ServeHTTP(w, r)
 	}
-}
-
-func tunnel(w http.ResponseWriter, r *http.Request) {
-	dialer := net.Dialer{}
-	serverConn, err := dialer.DialContext(r.Context(), "tcp", r.Host)
-	if err != nil {
-		log.Error("failed to connect to upstream %s", r.Host)
-		http.Error(w, http.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
-		return
-	}
-	defer serverConn.Close()
-
-	hj, ok := w.(http.Hijacker)
-	if !ok {
-		log.Error("hijack of connection failed")
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-
-	clientConn, bufClientConn, err := hj.Hijack()
-	if err != nil {
-		log.Error(err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-	defer clientConn.Close()
-
-	go io.Copy(serverConn, bufClientConn)
-	io.Copy(bufClientConn, serverConn)
-}
-
-func forward(w http.ResponseWriter, r *http.Request) {
-	resp, err := http.DefaultTransport.RoundTrip(r)
-	if err != nil {
-		log.Error(err)
-		http.Error(w, http.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
-		return
-	}
-	for header, values := range resp.Header {
-		for _, value := range values {
-			w.Header().Add(header, value)
-		}
-	}
-	w.WriteHeader(resp.StatusCode)
-	io.Copy(w, resp.Body)
 }
 
 func CreateHttpProxyServer(TargetConn *websocket.Conn, Port string, rch chan define.RelayCommandResp, stop chan struct{}) {
