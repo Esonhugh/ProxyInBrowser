@@ -19,6 +19,8 @@ builds:
       - "386"
       - amd64
       - arm64
+    main: ./cmd/server/main.go
+    binary: server
 
 archives:
   - name_template: "{{ .ProjectName }}_{{ .Tag }}_{{ .Os }}_{{ .Arch }}"
