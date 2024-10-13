@@ -15,7 +15,7 @@ func main() {
 	log.SetLevel(log.TraceLevel)
 	log.SetFormatter(&lef.Formatter{
 		TimestampFormat: "15:04:05",
-		LogFormat:       "%time%[%lvl%]> %msg%\n",
+		LogFormat:       "%time% [id:%session%]> %msg%\n",
 	})
 	buf := &bytes.Buffer{}
 	log.SetOutput(buf)

@@ -58,11 +58,21 @@ func (app Application) CreateLogUI() *tview.TextView {
 		SetTitleAlign(tview.AlignCenter)
 
 	go func() {
+		oldByte := []byte{}
 		for {
+			b := app.Spec.ConsoleLogBuffer.Bytes()
+			if bytes.Equal(b, oldByte) {
+				time.Sleep(100 * time.Millisecond)
+				continue // don't change
+			}
+			// b = bytes.ReplaceAll(b, oldByte, []byte(""))
+			// reconstruct the data
 			LogUI.Clear()
-			if _, err := LogUI.Write(app.Spec.ConsoleLogBuffer.Bytes()); err != nil {
+			if _, err := LogUI.Write(b); err != nil {
 				LogUI.Write([]byte(err.Error()))
 			}
+			LogUI.ScrollToEnd()
+			oldByte = bytes.Clone(b)
 			time.Sleep(100 * time.Millisecond)
 		}
 	}()
@@ -73,10 +83,36 @@ func (app Application) CreateLogUI() *tview.TextView {
 func (app Application) CreateTermUI() *tview.InputField {
 	TermUI := tview.NewInputField().SetLabel("Console> ")
 	TermUI.SetBorder(true).SetTitle("Command").SetTitleAlign(tview.AlignCenter)
+	cmdhistory := []string{}
+	uptime := 0
 	TermUI.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyEnter {
-			app.ExecuteCommand(TermUI.GetText())
-			TermUI.SetText("")
+			cmdinput := TermUI.GetText()
+			if cmdinput == "" {
+				return event
+			}
+			cmdhistory = append(cmdhistory, cmdinput)
+			app.ExecuteCommand(cmdinput)
+			TermUI.SetText("") // clean
+			uptime = 0
+		} else if event.Key() == tcell.KeyUp {
+			if len(cmdhistory) < 1+uptime || uptime < 0 {
+				return event
+			}
+			lastx := cmdhistory[len(cmdhistory)-1-uptime]
+			TermUI.SetText(lastx)
+			uptime++
+			return event
+		} else if event.Key() == tcell.KeyDown {
+			uptime--
+			if len(cmdhistory) < 1+uptime || uptime < 0 {
+				return event
+			}
+			lastx := cmdhistory[len(cmdhistory)-1-uptime]
+			TermUI.SetText(lastx)
+			return event
+		} else {
+			uptime = 0
 		}
 		return event
 	})

@@ -57,21 +57,21 @@ func newInterceptHandler(getCert getCertFn, innerHandler http.HandlerFunc, wg *s
 func (i *interceptHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	host, _, err := net.SplitHostPort(r.Host)
 	if err != nil {
-		log.Printf("split host port failed '%s': %s", r.Host, err)
+		log.Errorf("split host port failed '%s': %s", r.Host, err)
 		http.Error(w, http.StatusText(http.StatusBadRequest)+err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	tlsConfig, err := i.getCert(host)
 	if err != nil {
-		log.Println("failed to obtain tls config:", err)
+		log.Error("failed to obtain tls config:", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError)+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	hj, ok := w.(http.Hijacker)
 	if !ok {
-		log.Print("hijack of connection failed")
+		log.Error("hijack of connection failed")
 		http.Error(w, http.StatusText(http.StatusInternalServerError)+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -80,7 +80,7 @@ func (i *interceptHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	clientConn, _, err := hj.Hijack()
 	if err != nil {
-		log.Println("hijack failed:", err)
+		log.Error("hijack failed:", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}

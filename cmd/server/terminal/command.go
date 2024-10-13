@@ -67,8 +67,11 @@ func (app Application) ExecuteCommand(cmd string) {
 		conn = sessionmanager.WebsocketConnMap.Get(uid)
 	}
 	var taskID = uuid.New().String()
-
+	log := log.WithField("session", uid)
 	// System Command
+	if len(cmdSplited) < 0 {
+		return
+	}
 	{
 		switch cmdSplited[0] {
 		case "help":
