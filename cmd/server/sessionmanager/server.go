@@ -52,7 +52,7 @@ func RunServer(rch define.RelayChan, buffer io.Writer) {
 		conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 		if err != nil {
 			// panic(err)
-			log.Errorf("%s, error while Upgrading websocket connection\n", err.Error())
+			log.Errorf("%s, error while Upgrading websocket connection", err.Error())
 			c.AbortWithError(http.StatusInternalServerError, err)
 			return
 		}
@@ -73,7 +73,7 @@ func RunServer(rch define.RelayChan, buffer io.Writer) {
 			l.Errorf("Init message unmarshal failed. reason: %s, data: %v", err.Error(), string(p))
 		} else {
 			for k, v := range msg {
-				l.Infof("%s: %s\n", k, v)
+				l.Infof("%s: %s", k, v)
 			}
 		}
 
@@ -81,7 +81,7 @@ func RunServer(rch define.RelayChan, buffer io.Writer) {
 			_, p, err := conn.ReadMessage()
 			if err != nil {
 				// panic(err)
-				l.Errorf("%s, error while reading message\n", err.Error())
+				l.Errorf("%s, error while reading message", err.Error())
 				c.AbortWithError(http.StatusInternalServerError, err)
 				break
 			}
