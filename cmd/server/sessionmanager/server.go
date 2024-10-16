@@ -37,8 +37,6 @@ func RunServer(rch define.RelayChan, buffer io.Writer) {
 	}
 
 	router.GET("/cert", func(c *gin.Context) {
-		c.Header("Content-Disposition", "attachment; filename=cert.pem")
-		c.Header("Content-Type", "application/text/plain")
 		c.FileAttachment("cert/cert.pem", "cert.pem")
 	})
 

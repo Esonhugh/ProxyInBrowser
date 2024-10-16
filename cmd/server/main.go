@@ -24,11 +24,13 @@ func main() {
 	// app.RunApp(rch)
 
 	ch := make(chan os.Signal, 1)
-	go terminal.RunApplication(terminal.ApplicationSpec{
+	app := terminal.CreateApplication(terminal.ApplicationSpec{
 		ConsoleLogBuffer: buf,
 		Rch:              rch,
 		CloseCh:          ch,
 	})
+	go app.Run()
 	<-ch
+	app.Stop()
 	os.Exit(0)
 }

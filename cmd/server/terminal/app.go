@@ -30,8 +30,7 @@ func CreateApplication(Spec ApplicationSpec) Application {
 	}
 }
 
-func RunApplication(Spec ApplicationSpec) {
-	app := CreateApplication(Spec)
+func (app *Application) Run() {
 	LogUI := app.CreateLogUI()
 	TermUI := app.CreateTermUI()
 	app.LogArea = LogUI
@@ -43,6 +42,10 @@ func RunApplication(Spec ApplicationSpec) {
 	if err := app.UI.Run(); err != nil {
 		panic(err)
 	}
+}
+
+func (app *Application) Stop() {
+	app.UI.Stop()
 }
 
 func (app Application) CreateLogUI() *tview.TextView {
