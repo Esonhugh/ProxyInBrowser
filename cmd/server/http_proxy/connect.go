@@ -3,6 +3,8 @@ package http_proxy
 import (
 	"context"
 	"crypto/tls"
+	"errors"
+	"io"
 	"net"
 	"net/http"
 	"sync"
@@ -101,7 +103,13 @@ func (i *interceptHandler) Close() {
 type channelListener chan net.Conn
 
 func (cl channelListener) Accept() (net.Conn, error) {
-	return <-cl, nil
+	if conn, ok := <-cl; !ok {
+		return nil, errors.New("channel closed")
+	} else if conn == nil {
+		return nil, io.EOF
+	} else {
+		return conn, nil
+	}
 }
 
 func (cl channelListener) Addr() net.Addr {
