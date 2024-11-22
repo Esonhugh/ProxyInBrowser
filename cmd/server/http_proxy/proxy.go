@@ -2,21 +2,17 @@ package http_proxy
 
 import (
 	"fmt"
+	"github.com/esonhugh/proxyinbrowser/cmd/server/define"
+	"github.com/google/uuid"
+	log "github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"strings"
-
-	"github.com/google/uuid"
-
-	"github.com/esonhugh/proxyinbrowser/cmd/server/define"
-	"github.com/gorilla/websocket"
-	log "github.com/sirupsen/logrus"
 )
 
 type proxy struct {
-	Conn            *websocket.Conn
-	ResponseChannel chan define.RelayCommandResp
+	Conn *define.WebsocketClient
 }
 
 func (p *proxy) corsMiddleware(wr http.ResponseWriter, req *http.Request) bool {
@@ -140,7 +136,7 @@ func (p *proxy) ServeHTTP(wr http.ResponseWriter, req *http.Request) {
 	// generate TaskId
 	var taskId string = uuid.New().String()
 
-	FetchCommand := define.RelayCommand{
+	FetchCommand := &define.RelayCommand{
 		CommandId: taskId,
 		CommandDetail: define.Fetch{
 			Url: p.prepareURL(req),
@@ -154,13 +150,13 @@ func (p *proxy) ServeHTTP(wr http.ResponseWriter, req *http.Request) {
 
 	FetchCommand.CommandDetail.Option.Mode = p.preJudgeCORS(req)
 
-	if FetchCommand.SendTo(p.Conn) != nil {
+	if p.Conn.SendCommand(FetchCommand) != nil {
 		log.Error("Error while sending FetchCommand")
 		http.Error(wr, "Server Error", http.StatusInternalServerError)
 		return
 	}
 
-	for resp := range p.ResponseChannel {
+	for resp := range p.Conn.RelayChan {
 		if resp.CommandId == taskId {
 			r := resp.CommandResult
 			if r.Error != "" {
@@ -216,15 +212,14 @@ func (p *proxy) ServeHTTP(wr http.ResponseWriter, req *http.Request) {
 			io.Copy(wr, res)
 			break
 		} else {
-			p.ResponseChannel <- resp
+			p.Conn.RelayChan <- resp
 		}
 	}
 }
 
-func createHTTPProxy(TargetConn *websocket.Conn, rch chan define.RelayCommandResp) *proxy {
+func createHTTPProxy(TargetConn *define.WebsocketClient) *proxy {
 	handler := &proxy{
-		Conn:            TargetConn,
-		ResponseChannel: rch,
+		Conn: TargetConn,
 	}
 	return handler
 }

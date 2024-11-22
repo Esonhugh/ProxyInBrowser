@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"os"
 
-	"github.com/esonhugh/proxyinbrowser/cmd/server/define"
 	"github.com/esonhugh/proxyinbrowser/cmd/server/sessionmanager"
 	"github.com/esonhugh/proxyinbrowser/cmd/server/terminal"
 	log "github.com/sirupsen/logrus"
@@ -19,14 +18,12 @@ func main() {
 	})
 	buf := &bytes.Buffer{}
 	log.SetOutput(buf)
-	rch := define.NewChannels()
-	go sessionmanager.RunServer(rch, buf)
+	go sessionmanager.RunServer(buf)
 	// app.RunApp(rch)
 
 	ch := make(chan os.Signal, 1)
 	app := terminal.CreateApplication(terminal.ApplicationSpec{
 		ConsoleLogBuffer: buf,
-		Rch:              rch,
 		CloseCh:          ch,
 	})
 	go app.Run()

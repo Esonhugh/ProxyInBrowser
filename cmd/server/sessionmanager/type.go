@@ -1,25 +1,24 @@
 package sessionmanager
 
 import (
+	"github.com/esonhugh/proxyinbrowser/cmd/server/define"
 	"sync"
-
-	"github.com/gorilla/websocket"
 )
 
 type SafeWebsocketConnMap struct {
 	mapper sync.Map
 }
 
-func (s *SafeWebsocketConnMap) Get(key string) *websocket.Conn {
+func (s *SafeWebsocketConnMap) Get(key string) *define.WebsocketClient {
 	if v, e := s.mapper.Load(key); e {
-		if rv, ok := v.(*websocket.Conn); ok {
+		if rv, ok := v.(*define.WebsocketClient); ok {
 			return rv
 		}
 	}
 	return nil
 }
 
-func (s *SafeWebsocketConnMap) Set(key string, conn *websocket.Conn) {
+func (s *SafeWebsocketConnMap) Set(key string, conn *define.WebsocketClient) {
 	s.mapper.Store(key, conn)
 }
 

@@ -5,14 +5,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/esonhugh/proxyinbrowser/cmd/server/define"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
 type ApplicationSpec struct {
 	ConsoleLogBuffer *bytes.Buffer
-	Rch              define.RelayChan
 	CloseCh          chan os.Signal
 }
 

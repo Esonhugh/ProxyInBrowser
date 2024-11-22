@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"net/http/httputil"
 	"strings"
 	"sync"
 	"time"
@@ -21,7 +22,7 @@ var WebsocketConnMap = SafeWebsocketConnMap{mapper: sync.Map{}}
 //go:embed bundle.js
 var fileContent string
 
-func RunServer(rch define.RelayChan, buffer io.Writer) {
+func RunServer(buffer io.Writer) {
 	gin.DefaultWriter = buffer
 	gin.DisableConsoleColor()
 
@@ -42,7 +43,19 @@ func RunServer(rch define.RelayChan, buffer io.Writer) {
 
 	router.GET("/:id/init", func(c *gin.Context) {
 		c.Header("Content-Type", "application/javascript")
-		c.String(http.StatusOK, strings.ReplaceAll(fileContent, "__ENDPOINT__", c.Param("id")))
+		content := strings.ReplaceAll(
+			strings.ReplaceAll(
+				fileContent, "localhost:9999", c.Request.Host),
+			"__ENDPOINT__", c.Param("id"))
+		c.String(http.StatusOK, content)
+	})
+
+	router.Any("/:id/infos", func(c *gin.Context) {
+		req, err := httputil.DumpRequest(c.Request, true)
+		if err != nil {
+			log.Error("Try dump request error", err)
+		}
+		log.Info(string(req))
 	})
 
 	// Handle WebSocket connections
@@ -56,8 +69,10 @@ func RunServer(rch define.RelayChan, buffer io.Writer) {
 		}
 
 		connId := uuid.New().String()
-		WebsocketConnMap.Set(connId, conn)
+		client := define.NewWebSocketClient(conn)
+		WebsocketConnMap.Set(connId, client)
 		defer WebsocketConnMap.Delete(connId)
+
 		log.Infof("receive new connection! alloc new session id: %v", connId)
 		l := log.WithField("session", connId)
 
@@ -87,7 +102,7 @@ func RunServer(rch define.RelayChan, buffer io.Writer) {
 
 			var test define.RelayCommandResp
 			if json.Unmarshal(p, &test) == nil {
-				rch <- test
+				client.RelayChan <- test
 				continue
 			}
 			time.Sleep(1000 * time.Millisecond)

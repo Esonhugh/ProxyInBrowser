@@ -3,4 +3,5 @@ build/
 .idea/
 .vscode/
 test*
-server
+./server
+!server/
