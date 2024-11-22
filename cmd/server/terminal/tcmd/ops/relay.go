@@ -10,7 +10,7 @@ var port string
 
 func init() {
 	relayCmd.PersistentFlags().StringVarP(&port, "port", "p", "9001", "Port to listen on")
-	tcmd.RootCmd.AddCommand(relayCmd)
+	tcmd.RootCmd.AddCommand(relayCmd, stopRelayCmd)
 }
 
 var relayCmd = &cobra.Command{

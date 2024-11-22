@@ -2,6 +2,8 @@ package terminal
 
 import (
 	"github.com/esonhugh/proxyinbrowser/cmd/server/terminal/tcmd"
+	_ "github.com/esonhugh/proxyinbrowser/cmd/server/terminal/tcmd/admin"
+	_ "github.com/esonhugh/proxyinbrowser/cmd/server/terminal/tcmd/ops"
 	log "github.com/sirupsen/logrus"
 	"strings"
 )
@@ -63,6 +65,7 @@ func (app Application) ExecuteCommand(cmd string) {
 	tcmd.RootCmd.SetArgs(cmdSplited)
 	tcmd.RootCmd.SetOut(app.Spec.ConsoleLogBuffer)
 	tcmd.RootCmd.CompletionOptions.DisableDefaultCmd = true
+	tcmd.RootCmd.SilenceUsage = true
 	tcmd.RootCmd.DisableSuggestions = true
 	err := tcmd.RootCmd.Execute()
 	if err != nil {

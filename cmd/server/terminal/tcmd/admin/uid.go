@@ -13,6 +13,10 @@ var UidCmd = &cobra.Command{
 	Use:   "uid",
 	Short: "Lookup current uid",
 	Run: func(cmd *cobra.Command, args []string) {
-		tcmd.Opt.Log.Infof("Current session id is %v ", tcmd.Opt.SessionId)
+		if tcmd.Opt.SessionId == "" || tcmd.Opt.Session == nil {
+			tcmd.Opt.Log.Infof("session id useless")
+		} else {
+			tcmd.Opt.Log.Infof("Current session id is %v ", tcmd.Opt.SessionId)
+		}
 	},
 }

@@ -1,9 +1,14 @@
 package admin
 
 import (
+	"github.com/esonhugh/proxyinbrowser/cmd/server/terminal/tcmd"
 	"github.com/spf13/cobra"
 	"os"
 )
+
+func init() {
+	tcmd.RootCmd.AddCommand(exitCmd)
+}
 
 var exitCmd = &cobra.Command{
 	Use:     "exit",
